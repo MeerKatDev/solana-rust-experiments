@@ -13,12 +13,13 @@ use anchor_counter::accounts::Initialize as InitializeAccounts;
 use anchor_counter::ID;
 use anchor_lang::InstructionData;
 use anchor_lang::ToAccountMetas;
+use solana_sdk::system_program;
 
 #[test]
 fn test_counter_increment() {
     let program_id = ID;
-    let (counter_pda, _bump_seed) = Pubkey::find_program_address(&[b"counter"], &program_id); //Pubkey::new_unique();
-    let payer = Pubkey::new_unique();
+    let (counter_pda, _bump_seed) = Pubkey::find_program_address(&[b"counter"], &program_id);
+    let signer_pubkey = Pubkey::new_unique();
     let initial_count: u64 = 10;
     // Serialize instruction data — this should be the *arguments* sent to your program.
     let counter = Counter { count: initial_count };
@@ -32,15 +33,45 @@ fn test_counter_increment() {
     counter.serialize(&mut &mut counter_data[8..]).unwrap();
 
     // Create account owned by the program with initial data
-    let mut account1 = Account::default();
-    account1.owner = program_id;
-    account1.data = counter_data;
+    let mut program_account = Account::default();
+    program_account.owner = system_program::ID;
 
-    let accounts = vec![(counter_pda, account1)];
-    let ix = Instruction {
-        program_id,
+    let mut signer_account = Account::default();
+    signer_account.owner = system_program::ID;
+    // signer_account.owner = signer_pubkey;
+
+    let mut counter_account = Account::default();
+    counter_account.owner = system_program::ID;
+    counter_account.data = counter_data;
+
+    let accounts = vec![
+        AccountMeta::new_readonly(system_program::ID, false),
+        AccountMeta::new(signer_pubkey, true),
+        AccountMeta::new(counter_pda, false),
+    ];
+
+    let init_ix = Instruction {
+        program_id: system_program::ID,
         // accounts,
-        accounts: vec![AccountMeta::new(counter_pda, false)],
+        accounts: accounts.clone(),
+        data: Initialize {}.data(),
+    };
+
+    let all_accounts = vec![
+        (counter_pda, counter_account),
+        (signer_pubkey, signer_account),
+        (system_program::ID, program_account),
+    ];
+
+    let incr_accounts = vec![
+        AccountMeta::new_readonly(system_program::ID, false),
+        AccountMeta::new(signer_pubkey, true),
+        AccountMeta::new(counter_pda, false),
+    ];
+
+    let incr_ix = Instruction {
+        program_id: system_program::ID,
+        accounts: incr_accounts,
         data: Increment {}.data(),
     };
 
@@ -48,7 +79,8 @@ fn test_counter_increment() {
     let mollusk = Mollusk::new(&program_id, "../../target/deploy/anchor_counter");
 
     // Process instruction with initial accounts
-    let result = mollusk.process_instruction(&ix, &accounts);
+    let _ = mollusk.process_instruction(&init_ix, &all_accounts);
+    let result = mollusk.process_instruction(&incr_ix, &all_accounts);
 
     // Deserialize updated data after execution
     let updated_counter_data = &result.resulting_accounts[0].1.data;
