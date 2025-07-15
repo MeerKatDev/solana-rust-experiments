@@ -34,24 +34,25 @@ fn test_counter_increment() {
 
     // Create account owned by the program with initial data
     let mut program_account = Account::default();
-    program_account.owner = system_program::ID;
+    program_account.owner = Pubkey::default();
 
     let mut signer_account = Account::default();
+    // signer_account.owner = Pubkey::default();
     signer_account.owner = system_program::ID;
     // signer_account.owner = signer_pubkey;
 
     let mut counter_account = Account::default();
-    counter_account.owner = system_program::ID;
+    counter_account.owner = program_id;
     counter_account.data = counter_data;
 
     let accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(signer_pubkey, true),
         AccountMeta::new(counter_pda, false),
+        AccountMeta::new(signer_pubkey, true),
+        AccountMeta::new(system_program::ID, false),
     ];
 
     let init_ix = Instruction {
-        program_id: system_program::ID,
+        program_id,
         // accounts,
         accounts: accounts.clone(),
         data: Initialize {}.data(),
@@ -64,13 +65,13 @@ fn test_counter_increment() {
     ];
 
     let incr_accounts = vec![
-        AccountMeta::new_readonly(system_program::ID, false),
-        AccountMeta::new(signer_pubkey, true),
         AccountMeta::new(counter_pda, false),
+        AccountMeta::new(signer_pubkey, true),
+        AccountMeta::new(system_program::ID, false),
     ];
 
     let incr_ix = Instruction {
-        program_id: system_program::ID,
+        program_id,
         accounts: incr_accounts,
         data: Increment {}.data(),
     };
