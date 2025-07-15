@@ -20,6 +20,15 @@ cargo build-sbf
 cargo test
 ```
 
+## counter-litesvm
+Simple counter solana-program app with [litesvm](https://github.com/LiteSVM) test.
+Run with 
+```
+cargo build-sbf
+cargo test
+```
+
+
 ## For checking the assembly generated on MacOS M1/M2
 
 ```
