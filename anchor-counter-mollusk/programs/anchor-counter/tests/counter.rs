@@ -79,8 +79,9 @@ fn test_counter_increment() {
     let mollusk = Mollusk::new(&program_id, "../../target/deploy/anchor_counter");
 
     // Process instruction with initial accounts
-    let _ = mollusk.process_instruction(&init_ix, &all_accounts);
-    let result = mollusk.process_instruction(&incr_ix, &all_accounts);
+    let result_init = mollusk.process_instruction(&init_ix, &all_accounts);
+    let initialized_accounts = result_init.resulting_accounts;
+    let result = mollusk.process_instruction(&incr_ix, &initialized_accounts);
 
     // Deserialize updated data after execution
     let updated_counter_data = &result.resulting_accounts[0].1.data;

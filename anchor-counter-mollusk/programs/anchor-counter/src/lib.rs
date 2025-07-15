@@ -47,5 +47,5 @@ pub struct Initialize<'info> {
 pub struct Increment<'info> {
     #[account(mut)]
     pub counter: Account<'info, Counter>,
-    pub system_program: Program<'info, System>,
+    // pub system_program: Program<'info, System>,
 }
