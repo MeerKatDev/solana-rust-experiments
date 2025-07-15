@@ -1,0 +1,41 @@
+#![allow(unexpected_cfgs)]
+
+use borsh::{BorshDeserialize, BorshSerialize};
+use solana_program::{
+    account_info::{AccountInfo, next_account_info},
+    entrypoint,
+    entrypoint::ProgramResult,
+    msg,
+    program_error::ProgramError,
+    pubkey::Pubkey,
+};
+
+#[derive(BorshSerialize, BorshDeserialize, Debug, Default)]
+pub struct Counter {
+    pub count: u64,
+}
+
+entrypoint!(process_instruction);
+
+fn process_instruction(
+    _program_id: &Pubkey,
+    accounts: &[AccountInfo],
+    _instruction_data: &[u8],
+) -> ProgramResult {
+    let accounts_iter = &mut accounts.iter();
+    let account = next_account_info(accounts_iter)?;
+    msg!("Starting!");
+
+    if !account.is_writable {
+        msg!("Account is not writable");
+        return Err(ProgramError::InvalidAccountData);
+    }
+
+    let mut counter = Counter::try_from_slice(&account.data.borrow())?;
+    counter.count += 1;
+    let mut data_ref = account.data.borrow_mut();
+    counter.serialize(&mut data_ref.as_mut())?;
+
+    msg!("Counter incremented to {}", counter.count);
+    Ok(())
+}

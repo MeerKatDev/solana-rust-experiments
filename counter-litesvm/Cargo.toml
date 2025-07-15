@@ -1,0 +1,21 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "counter-litesvm"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+solana-program = "2.2.0"
+borsh = { version = "=1.5.7", features = ["derive"] }
+
+[dev-dependencies]
+# solana-program-test = "2.3.4"
+## version incompatible with solana-program 2.3.0
+litesvm = "0.6.1"
+solana-sdk = "2.1.0"
+solana-message = "2.2.0"
+solana-account = "2.2.0"
+
+[lib]
+crate-type = ["cdylib", "lib"]
