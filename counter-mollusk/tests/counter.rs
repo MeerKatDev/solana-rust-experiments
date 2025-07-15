@@ -38,11 +38,11 @@ fn test_addition_instruction() {
     // need to set the owner otherwise it cannot access the program
     account1.owner = program_id;
     // this contains the borsh
-    // account1.data = instr_in_bytes;
+    account1.data = instr_in_bytes;
 
     // NOTE: doesn't want to work?
     // apparently it doesn't see the borsh instruction
-    account1.data = instruction_off.try_to_vec_with_schema().unwrap();
+    // account1.data = instruction_off.try_to_vec_with_schema().unwrap();
 
     let accounts = vec![
         (key1, account1)

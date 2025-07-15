@@ -30,11 +30,11 @@ fn process_instruction(
         return Err(ProgramError::InvalidAccountData);
     }
 
-    let mut counter_data = Counter::try_from_slice(&account.data.borrow())?;
-    counter_data.count += 1;
+    let mut counter = Counter::try_from_slice(&account.data.borrow())?;
+    counter.count += 1;
     let mut data_ref = account.data.borrow_mut();
-    counter_data.serialize(&mut data_ref.as_mut())?;
+    counter.serialize(&mut data_ref.as_mut())?;
 
-    msg!("Counter incremented to {}", counter_data.count);
+    msg!("Counter incremented to {}", counter.count);
     Ok(())
 }
