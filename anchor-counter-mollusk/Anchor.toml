@@ -7,14 +7,14 @@ resolution = true
 skip-lint = false
 
 [programs.localnet]
-anchor_counter = "7rYmEqGjsw9UirDgHfQn1zCzwZRU5uSfLK19fSqzM7uF"
+anchor_counter = "GrUZEe4fs4dWW4bm9xGe9YuTJT2xESx29BksT1AX6ueM"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "localnet"
-wallet = "~/.config/solana/id.json"
+wallet = "target/deploy/anchor_counter-keypair.json"
 
 [scripts]
 test = "cd programs/anchor-counter && cargo test"
