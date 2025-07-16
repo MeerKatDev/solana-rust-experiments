@@ -28,6 +28,7 @@ pub mod anchor_counter {
 
 // The account that stores the counter state
 #[account]
+#[derive(InitSpace)]
 pub struct Counter {
     pub count: u64,
 }
@@ -35,7 +36,12 @@ pub struct Counter {
 // Context for initialize, creating the Counter account
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(init, payer = user, space = 8 + 8)] // 8 bytes for discriminator + 8 for u64
+    #[account(init, 
+        payer = user, 
+        space = 8 + Counter::INIT_SPACE,
+        seeds = [b"counter", user.key().as_ref()],
+        bump
+    )]
     pub counter: Account<'info, Counter>,
     #[account(mut)]
     pub user: Signer<'info>,
@@ -47,5 +53,4 @@ pub struct Initialize<'info> {
 pub struct Increment<'info> {
     #[account(mut)]
     pub counter: Account<'info, Counter>,
-    pub system_program: Program<'info, System>,
 }
