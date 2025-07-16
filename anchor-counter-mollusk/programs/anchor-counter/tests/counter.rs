@@ -40,7 +40,7 @@ fn test_counter_increment() {
     counter.try_serialize(&mut counter_data).unwrap();
 
     counter_account.data = counter_data;
-    counter_account.lamports = 1_000_000;
+    counter_account.lamports = 4_000_000;
 
     let accounts = vec![
         AccountMeta::new(counter_pda, false),

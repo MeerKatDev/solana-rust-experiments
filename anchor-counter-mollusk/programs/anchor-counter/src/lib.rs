@@ -35,7 +35,7 @@ pub struct Counter {
 // Context for initialize, creating the Counter account
 #[derive(Accounts)]
 pub struct Initialize<'info> {
-    #[account(init,
+    #[account(init_if_needed,
         payer = user,
         space = 8 + Counter::INIT_SPACE,
         seeds = [b"counter", user.key().as_ref()],

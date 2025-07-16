@@ -171,7 +171,6 @@ name = "anchor-counter"
 version = "0.1.0"
 dependencies = [
  "anchor-lang",
- "borsh 1.5.7",
  "mollusk-svm",
  "solana-sdk",
 ]
