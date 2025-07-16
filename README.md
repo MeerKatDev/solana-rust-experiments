@@ -2,6 +2,14 @@
 
 This repo is for trying out different tools with basic programs. Curious also about VM bytecode size.
 
+# araiza-messenger
+
+Messenger test app created by [this author](https://github.com/JacobAraiza). It has anchor and tests with solana-program-test.
+
+# araiza-nft
+
+NFT minting test app created by [this author](https://github.com/JacobAraiza). It has anchor and tests with solana-sdk, i.e. it's using Rust Client methods basically.
+
 ## counter-mollusk 
 Simple counter solana-program app with a [mollusk](https://github.com/anza-xyz/mollusk) test.
 

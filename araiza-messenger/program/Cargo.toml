@@ -1,0 +1,17 @@
+[package]
+name = "program"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+anchor-lang = { version = "=0.25", features = ["init-if-needed"] }
+solana-program = "=1.10.29"
+
+[dev-dependencies]
+solana-program-test = "=1.10.29"
+solana-sdk = "=1.10.29"
+rand = "0.8.5"
+wasm-bindgen = "=0.2.89"
+
+[lib]
+crate-type = ["cdylib", "lib"]
