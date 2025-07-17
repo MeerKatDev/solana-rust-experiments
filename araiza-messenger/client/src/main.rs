@@ -1,5 +1,5 @@
 use anchor_lang::AccountDeserialize;
-use rand::Rng;
+// use rand::Rng;
 use solana_client::rpc_client::RpcClient;
 use solana_sdk::{
     commitment_config::CommitmentConfig, instruction::Instruction, pubkey::Pubkey,
@@ -48,7 +48,8 @@ enum Command {
 fn send(client: &RpcClient, from: &Keypair, to: &Pubkey, message: &str) -> Result<(), Error> {
     let key = encrypt::SharedKey::new(from, to);
     let ciphertext = key.transmit_key.encrypt(message);
-    let message_seed: [u8; 8] = rand::thread_rng().gen();
+    // let message_seed: [u8; 8] = rand::thread_rng().r#gen();
+    let message_seed: [u8; 8] = [3, 52, 43, 9, 145, 222, 127, 12];
     let (message_pda, _bump) = Pubkey::find_program_address(&[&message_seed], &program::ID);
     let instruction = program::send_direct_mesage(
         from.pubkey(),

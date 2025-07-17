@@ -1,5 +1,5 @@
 use anchor_lang::AccountDeserialize;
-use rand::Rng;
+// use rand::Rng;
 use solana_program::instruction::Instruction;
 use solana_program_test::{processor, tokio, BanksClientError, ProgramTest, ProgramTestContext};
 use solana_sdk::{
@@ -7,10 +7,27 @@ use solana_sdk::{
     transaction::Transaction,
 };
 
+use anchor_lang::prelude::AccountInfo;
+use solana_sdk::entrypoint::ProgramResult;
+// use program::messenger;
+
+pub fn add_program() -> ProgramTest {
+    ProgramTest::new("program", program::ID, processor!(entry))
+}
+
+/// This is a wrapper to get the processor macro to work.
+fn entry(program_id: &Pubkey, accounts: &[AccountInfo], instruction_data: &[u8]) -> ProgramResult {
+    let accounts = Box::leak(Box::new(accounts.to_vec()));
+
+    program::entry(program_id, accounts, instruction_data)
+}
+
 #[tokio::test]
 async fn test_program() {
-    let mut validator = ProgramTest::default();
-    validator.add_program("program", program::ID, processor!(program::entry));
+    // let mut validator = ProgramTest::default();
+    // validator.add_program("program", program::ID, processor!(program::entry));
+    // add_program()
+    let mut validator = ProgramTest::new("program", program::ID, processor!(entry));
     let alpha = add_account(&mut validator);
     let beta = add_account(&mut validator);
     let mut context = validator.start_with_context().await;
@@ -24,6 +41,8 @@ async fn test_program() {
         .unwrap()
         .is_none());
 
+    println!("alpha_mailbox {:?}", alpha_mailbox);
+
     let beta_mailbox = program::mailbox_pda(&beta.pubkey());
     assert!(context
         .banks_client
@@ -31,6 +50,8 @@ async fn test_program() {
         .await
         .unwrap()
         .is_none());
+
+    println!("beta_mailbox {:?}", alpha_mailbox);
 
     // Send first message
     let ciphertext: Vec<u8> = "Hello".into();
@@ -59,6 +80,9 @@ async fn test_program() {
         let chat_data = program::Mailbox::try_deserialize(&mut chat.data.as_ref()).unwrap();
         assert_eq!(chat_data.inbox, Some(first_message_pda));
     }
+
+    
+    println!("after first message");
 
     // Send second message
     let encrypted_response: Vec<u8> = "Hi! Who's this?".into();
@@ -107,7 +131,8 @@ async fn send_direct_message(
     encrypted_text: Vec<u8>,
 ) -> Result<Pubkey, BanksClientError> {
     let from_pubkey = sender.pubkey();
-    let seed: [u8; 8] = rand::thread_rng().gen();
+    // let seed: [u8; 8] = rand::thread_rng().gen();
+    let seed: [u8; 8] = [3, 52, 43, 9, 145, 222, 127, 12];
     let (message_pda, _bump) = Pubkey::find_program_address(&[&seed], &program::ID);
     let instruction = program::send_direct_mesage(
         from_pubkey,

@@ -3,3 +3,4 @@ members = [
     "client",
     "program"
 ]
+resolver = "3"

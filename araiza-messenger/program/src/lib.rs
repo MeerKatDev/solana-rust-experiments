@@ -1,5 +1,7 @@
 #![allow(unexpected_cfgs)]
 
+declare_id!("2Ls5MquEmp42AXBxKXX3a9Gu54aPYYVC19tV7RCMKsTt");
+
 use anchor_lang::{prelude::*, InstructionData};
 use solana_program::instruction::Instruction;
 
@@ -29,7 +31,7 @@ pub struct SendDirectMessage<'info> {
     #[account(
         init_if_needed, 
         payer = from, 
-        owner = *program_id,
+        owner = *__program_id,
         seeds = [to.key().as_ref()],
         bump,
         space = 8 + DIRECT_CHAT_SIZE
@@ -38,7 +40,7 @@ pub struct SendDirectMessage<'info> {
     #[account(
         init_if_needed, 
         payer = from, 
-        owner = *program_id,
+        owner = *__program_id,
         seeds = [message_seed.as_ref()],
         bump,
         space = 8 + MESSAGE_MAX_SIZE
@@ -48,7 +50,7 @@ pub struct SendDirectMessage<'info> {
 }
 
 #[program]
-pub mod mesenger {
+pub mod messenger {
     use super::*;
 
     #[allow(unused_variables)] // `message_seed` used in `init` of `SendDirectMessage`
@@ -108,5 +110,3 @@ pub fn send_direct_mesage(
         ],
     )
 }
-
-declare_id!("2Ls5MquEmp42AXBxKXX3a9Gu54aPYYVC19tV7RCMKsTt");
