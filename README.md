@@ -4,7 +4,7 @@ This repo is for trying out different tools with basic programs. Curious also ab
 
 # araiza-messenger
 
-Messenger test app created by [this author](https://github.com/JacobAraiza). It has anchor and tests with solana-program-test.
+Messenger test app created by [this author](https://github.com/JacobAraiza). It has anchor and tests with solana-program-test. Works with `cargo test-sbf`.
 
 # araiza-nft
 
