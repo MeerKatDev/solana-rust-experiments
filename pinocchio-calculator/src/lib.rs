@@ -36,13 +36,16 @@ pub fn process_instruction(
         return Err(ProgramError::IncorrectProgramId);
     }
 
-    let mut calc = Calculator::try_from(&account.data.borrow())?;
+    let mut calc = Calculator::try_from_slice(&account.data.borrow())
+        .map_err(|_e| ProgramError::BorshIoError)?;
 
-    let calculator_instructions = CalculatorInstructions::try_from(&instruction_data)?;
+    let calculator_instructions = CalculatorInstructions::try_from_slice(&instruction_data)
+        .map_err(|_e| ProgramError::BorshIoError)?;
 
     calc.value = calculator_instructions.evaluate(calc.value);
 
-    calc.serialize(&mut &mut account.data.borrow_mut()[..])?;
+    calc.serialize(&mut &mut account.data.borrow_mut()[..])
+        .map_err(|_e| ProgramError::BorshIoError)?;
     msg!(format!("Value is now: {}", calc.value).as_str());
 
     Ok(())

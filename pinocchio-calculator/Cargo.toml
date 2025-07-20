@@ -7,7 +7,6 @@ edition = "2024"
 
 [dependencies]
 borsh = { version = "=1.5.7", features = ["derive"] }
-# solana-program = "2.3.0"
 pinocchio = "0.8.4"
 
 [dev-dependencies]
