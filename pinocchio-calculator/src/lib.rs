@@ -43,7 +43,7 @@ pub fn process_instruction(
     calc.value = calculator_instructions.evaluate(calc.value);
 
     calc.serialize(&mut &mut account.data.borrow_mut()[..])?;
-    msg!("Value is now: {}", calc.value);
+    msg!(format!("Value is now: {}", calc.value).as_str());
 
     Ok(())
 }
