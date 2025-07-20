@@ -1,13 +1,10 @@
+use borsh::{BorshDeserialize, BorshSerialize};
 use pinocchio::pubkey::Pubkey;
 use solana_program_test::*;
 use solana_sdk::{
-    account::Account,
-    signature::Keypair,
-    signer::Signer,
+    account::Account, instruction::Instruction, signature::Keypair, signer::Signer,
     transaction::Transaction,
-    instruction::{Instruction},
 };
-use borsh::{BorshSerialize, BorshDeserialize};
 
 use calculator::{Calculator, CalculatorInstructions};
 
@@ -43,7 +40,7 @@ async fn test_addition_instruction() {
 
     // Create CalculatorInstructions
     let instr = CalculatorInstructions {
-        operation: 1,         // ADD
+        operation: 1, // ADD
         operating_value: 5,
     };
 
@@ -53,7 +50,10 @@ async fn test_addition_instruction() {
     let instruction = Instruction::new_with_bytes(
         program_id,
         &instr_data,
-        vec![solana_sdk::instruction::AccountMeta::new(calc_account.pubkey(), false)],
+        vec![solana_sdk::instruction::AccountMeta::new(
+            calc_account.pubkey(),
+            false,
+        )],
     );
 
     let tx = Transaction::new_signed_with_payer(
