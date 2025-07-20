@@ -23,10 +23,10 @@ pub fn process_instruction(
 ) -> ProgramResult {
     let account = &accounts[0];
 
-    if account.is_owned_by(program_id) {
-        msg!("Account does not have the correct program id");
-        return Err(ProgramError::IncorrectProgramId);
-    }
+    // if account.is_owned_by(program_id) {
+    //     msg!("Account does not have the correct program id");
+    //     return Err(ProgramError::IncorrectProgramId);
+    // }
 
     if !account.is_writable() {
         msg!("Account is not writable");
