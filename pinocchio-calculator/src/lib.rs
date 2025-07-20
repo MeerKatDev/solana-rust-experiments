@@ -29,8 +29,7 @@ pub fn process_instruction(
     }
 
     let mut data = account.try_borrow_mut_data().unwrap();
-    let mut calc = Calculator::try_from_slice(&data)
-        .map_err(|_e| ProgramError::BorshIoError)?;
+    let mut calc = Calculator::try_from_slice(&data).map_err(|_e| ProgramError::BorshIoError)?;
 
     let calculator_instructions = CalculatorInstructions::try_from_slice(&instruction_data)
         .map_err(|_e| ProgramError::BorshIoError)?;
@@ -39,7 +38,7 @@ pub fn process_instruction(
 
     calc.serialize(&mut &mut data[..])
         .map_err(|_e| ProgramError::BorshIoError)?;
-        
+
     msg!(format!("Value is now: {}", calc.value).as_str());
 
     Ok(())
