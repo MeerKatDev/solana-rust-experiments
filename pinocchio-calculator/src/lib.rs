@@ -28,6 +28,11 @@ pub fn process_instruction(
         return Err(ProgramError::IncorrectProgramId);
     }
 
+    if !account.is_writable() {
+        msg!("Account is not writable");
+        return Err(ProgramError::InvalidAccountData);
+    }
+
     let mut data = account.try_borrow_mut_data().unwrap();
     let mut calc = Calculator::try_from_slice(&data).map_err(|_e| ProgramError::BorshIoError)?;
 
