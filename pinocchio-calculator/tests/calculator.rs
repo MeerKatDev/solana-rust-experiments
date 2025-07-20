@@ -2,12 +2,12 @@ use borsh::{BorshDeserialize, BorshSerialize};
 // use solana_program_test::*;
 use mollusk_svm::{Mollusk, result::Check};
 use solana_sdk::{
-    account::Account, 
-    // entrypoint::ProgramResult, 
-    instruction::{AccountMeta, Instruction}, 
+    account::Account,
+    // entrypoint::ProgramResult,
+    instruction::{AccountMeta, Instruction},
     pubkey::Pubkey,
-    signature::Keypair, 
-    signer::Signer, 
+    signature::Keypair,
+    signer::Signer,
     // transaction::Transaction,
 };
 
@@ -77,9 +77,7 @@ fn test_addition_instruction() {
     //     recent_blockhash,
     // );
 
-    let checks = vec![
-        Check::success()
-    ];
+    let checks = vec![Check::success()];
 
     // banks_client.process_transaction(tx).await.unwrap();
     let result = mollusk.process_and_validate_instruction(&instruction, &accounts, &checks);
@@ -91,7 +89,7 @@ fn test_addition_instruction() {
     //     .unwrap()
     //     .unwrap();
     let updated_account_data = &result.resulting_accounts[0].1.data;
-    // deserializing into a new counter struct for readability 
+    // deserializing into a new counter struct for readability
     // (we could have used the binary data though)
     let updated_counter = Calculator::try_from_slice(updated_account_data).unwrap();
     // confirming that the counter was incremented by 1
