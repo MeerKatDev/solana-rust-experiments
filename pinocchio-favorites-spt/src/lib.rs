@@ -3,8 +3,9 @@
 use borsh::{BorshDeserialize, BorshSerialize};
 use pinocchio::{
     ProgramResult, account_info::AccountInfo, entrypoint, msg, program_error::ProgramError,
-    pubkey::Pubkey,
+    pubkey::Pubkey, sysvars::clock::Clock
 };
+use pinocchio::sysvars::Sysvar;
 
 pinocchio_pubkey::declare_id!("TokenkegQfeZyiNwAJbNbGKPFXCWuBvf9Ss623VQ5DA");
 
@@ -45,6 +46,8 @@ pub fn process_instruction(
     if favorites.hobbies.len() > 50 || favorites.hobbies.len() < 5 {
         return Err(ProgramError::Custom(2));
     }
+
+    msg!(&format!("current epoch is {}", Clock::get()?.epoch));
 
     // difference
     let mut data = account.try_borrow_mut_data().unwrap();
