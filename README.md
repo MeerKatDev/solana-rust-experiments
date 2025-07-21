@@ -36,6 +36,9 @@ cargo build-sbf
 cargo test
 ```
 
+## pinocchio-favorites-spt
+Program with pinocchio and pinocchio-pubkey running solana program test, minimal test setup. Run with `cargo test-sbf`.
+
 
 ## For checking the assembly generated on MacOS M1/M2
 
