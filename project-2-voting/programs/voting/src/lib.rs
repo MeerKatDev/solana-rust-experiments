@@ -1,13 +1,14 @@
 #![allow(unexpected_cfgs)]
-#![no_std]
+// #![no_std]
 
 extern crate alloc;
 use alloc::string::String;
+use alloc::vec;
 
 use borsh::{BorshDeserialize, BorshSerialize};
 use pinocchio::{
     account_info::AccountInfo,
-    entrypoint,
+    entrypoint, msg,
     program_error::ProgramError,
     pubkey::Pubkey,
     sysvars::{clock::Clock, Sysvar},
@@ -15,7 +16,7 @@ use pinocchio::{
 };
 use pinocchio_log::logger::Logger;
 
-mod accounts;
+pub mod accounts;
 use accounts::PollAccount;
 
 #[repr(u32)]
@@ -131,7 +132,7 @@ fn process_initialize_candidate(
 
     let candidate_data = CandidateAccount {
         candidate_name,
-        candidate_votes: 0
+        candidate_votes: 0,
     };
 
     // get memory "booked" by candidate account
@@ -156,7 +157,8 @@ fn process_vote(accounts: &[AccountInfo], _poll_id: u64, _candidate_name: String
     let candidate_account = &accounts[1]; // Signer (payer)
 
     // this has to be read-only
-    let poll_data = poll_account.try_borrow_data()
+    let poll_data = poll_account
+        .try_borrow_data()
         .map_err(|_| ProgramError::InvalidAccountData)?;
     let poll_account =
         PollAccount::try_from_slice(&poll_data).map_err(|_e| ProgramError::InvalidAccountData)?;
@@ -202,37 +204,48 @@ fn process_initialize_poll(
     let mut logger = Logger::<100>::default();
 
     let poll_account = &accounts[0]; // Writable, owned by program
-    let initializer = &accounts[1]; // Signer, who initializes the poll, not necessarily the candidate
+                                     // let initializer = &accounts[1]; // Signer, who initializes the poll, not necessarily the candidate
 
-    if !initializer.is_signer() {
-        return Err(ProgramError::MissingRequiredSignature);
-    }
+    // if !initializer.is_signer() {
+    //     return Err(ProgramError::MissingRequiredSignature);
+    // }
 
-    if !poll_account.is_owned_by(initializer.key()) {
-        logger.append("Poll account is not owned by initializer");
-        logger.log();
+    // if !poll_account.is_owned_by(initializer.key()) {
+    //     logger.append("Poll account is not owned by initializer");
+    //     logger.log();
 
-        return Err(ProgramError::IllegalOwner);
-    }
+    //     return Err(ProgramError::IllegalOwner);
+    // }
 
     if poll_description.len() > 280 {
         return Err(ProgramError::Custom(ErrorCode::DescriptionTooLong.into()));
     }
 
-    let poll_data = PollAccount {
-        poll_id,
-        poll_name,
-        poll_description,
-        poll_voting_start,
-        poll_voting_end,
-        poll_option_index: 0,
-    };
+    // This is good for creation from zero
+    // let new_poll_account = PollAccount {
+    //     poll_id,
+    //     poll_name,
+    //     poll_description,
+    //     poll_voting_start,
+    //     poll_voting_end,
+    //     poll_option_index: 0,
+    // };
 
-    let mut data = poll_account
-        .try_borrow_mut_data()
-        .map_err(|_| ProgramError::InvalidAccountData)?;
+    let mut data = poll_account.try_borrow_mut_data().unwrap();
 
-    poll_data
+    let mut poll_account =
+        PollAccount::try_from_slice(&data).map_err(|_e| ProgramError::InvalidAccountData)?;
+
+    // NOTE: this assumes that the account is already present,
+    // not that it has to be created.
+    poll_account.poll_id = poll_id;
+    poll_account.poll_name = poll_name;
+    poll_account.poll_description = poll_description;
+    poll_account.poll_voting_start = poll_voting_start;
+    poll_account.poll_voting_end = poll_voting_end;
+    poll_account.poll_option_index = 0;
+
+    poll_account
         .serialize(&mut &mut data[..])
         .map_err(|_e| ProgramError::InvalidAccountData)?;
 
