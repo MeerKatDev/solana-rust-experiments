@@ -12,7 +12,6 @@ pub mod accounts;
 pub mod error;
 pub mod ixs;
 
-use accounts::{CandidateAccount, PollAccount};
 use ixs::VotingInstruction;
 
 entrypoint!(process_instruction);

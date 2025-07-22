@@ -1,8 +1,7 @@
+use crate::accounts::{CandidateAccount, PollAccount};
 use crate::error::ErrorCode;
-use crate::{CandidateAccount, PollAccount};
 use alloc::string::String;
 use borsh::{BorshDeserialize, BorshSerialize};
-
 use pinocchio::{
     account_info::AccountInfo,
     program_error::ProgramError,

@@ -1,5 +1,5 @@
+use crate::accounts::PollAccount;
 use crate::error::ErrorCode;
-use crate::PollAccount;
 use alloc::string::String;
 use borsh::BorshSerialize;
 
@@ -31,7 +31,11 @@ pub fn initialize_poll(
     //     return Err(ProgramError::IllegalOwner);
     // }
 
-    if poll_description.len() > 280 {
+    if poll_name.len() > PollAccount::MAX_NAME_LENGTH {
+        return Err(ProgramError::Custom(ErrorCode::NameTooLong.into()));
+    }
+
+    if poll_description.len() > PollAccount::MAX_DESCRIPTION_LENGTH {
         return Err(ProgramError::Custom(ErrorCode::DescriptionTooLong.into()));
     }
 
@@ -46,6 +50,8 @@ pub fn initialize_poll(
     };
 
     let mut data = poll_account.try_borrow_mut_data().unwrap();
+    // let poll_account_object = PollAccount::default();
+    // let mut data = vec![0u8; 0];
 
     new_poll_account
         .serialize(&mut &mut data[..])
