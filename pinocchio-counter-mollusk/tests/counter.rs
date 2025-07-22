@@ -22,9 +22,10 @@ fn test_addition_instruction() {
     let instruction_off = Counter { count };
 
     // instruction - onchain representation
-    let instruction_on = Instruction::new_with_borsh(
+    let instruction_on = Instruction::new_with_borsh::<[Counter; 0]>(
         program_id,
-        &instruction_off,
+        // this is not used in any case
+        &[],
         // cannot be readonly
         // but it can be not the signer
         vec![AccountMeta::new(key1, false)],
