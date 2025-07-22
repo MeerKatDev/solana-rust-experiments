@@ -1,6 +1,10 @@
-#![no_std]
 #![allow(unexpected_cfgs)]
+#![no_std]
 
+extern crate alloc;
+use alloc::string::String;
+
+use borsh::{BorshDeserialize, BorshSerialize};
 use pinocchio::{
     account_info::AccountInfo,
     entrypoint,
@@ -11,12 +15,8 @@ use pinocchio::{
 };
 use pinocchio_log::logger::Logger;
 
-use borsh::{BorshDeserialize, BorshSerialize};
-
-extern crate alloc;
-
-use alloc::string::String;
-// use alloc::vec::Vec;
+mod accounts;
+use accounts::PollAccount;
 
 #[repr(u32)]
 pub enum ErrorCode {
@@ -36,16 +36,6 @@ impl From<ErrorCode> for u32 {
 pub struct CandidateAccount {
     pub candidate_name: String,
     pub candidate_votes: u64,
-}
-
-#[derive(BorshSerialize, BorshDeserialize, Debug)]
-pub struct PollAccount {
-    pub poll_id: u64,
-    pub poll_name: String,
-    pub poll_description: String,
-    pub poll_voting_start: u64,
-    pub poll_voting_end: u64,
-    pub poll_option_index: u64,
 }
 
 #[derive(BorshSerialize, BorshDeserialize)]
@@ -154,20 +144,9 @@ fn process_initialize_candidate(
         .map_err(|_e| ProgramError::InvalidAccountData)?;
 
     // editing poll account
-
-    let mut poll_data = poll_account
-        .try_borrow_mut_data()
-        .map_err(|_| ProgramError::InvalidAccountData)?;
-
-    // we are editing, meaning that the struct already exists
-    let mut poll_account =
-        PollAccount::try_from_slice(&poll_data).map_err(|_e| ProgramError::InvalidAccountData)?;
-
-    poll_account.poll_option_index += 1;
-
-    poll_account
-        .serialize(&mut &mut poll_data[..])
-        .map_err(|_| ProgramError::InvalidAccountData)?;
+    let (mut poll, mut data) = PollAccount::load_mut(poll_account)?;
+    poll.increment_option_index();
+    poll.save(&mut data)?;
 
     Ok(())
 }
