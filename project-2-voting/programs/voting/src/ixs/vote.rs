@@ -1,13 +1,13 @@
 use crate::error::ErrorCode;
 use crate::{CandidateAccount, PollAccount};
 use alloc::string::String;
-use borsh::{BorshSerialize, BorshDeserialize};
+use borsh::{BorshDeserialize, BorshSerialize};
 
 use pinocchio::{
-	ProgramResult,
-	account_info::AccountInfo, 
-	sysvars::{clock::Clock, Sysvar}, 
-	program_error::ProgramError, 
+    account_info::AccountInfo,
+    program_error::ProgramError,
+    sysvars::{clock::Clock, Sysvar},
+    ProgramResult,
 };
 
 pub fn vote(accounts: &[AccountInfo], _poll_id: u64, _candidate_name: String) -> ProgramResult {

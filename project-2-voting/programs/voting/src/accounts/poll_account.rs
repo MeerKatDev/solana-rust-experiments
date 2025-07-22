@@ -1,13 +1,10 @@
 use alloc::string::String;
-use alloc::vec;
 use borsh::{BorshDeserialize, BorshSerialize};
-use core::mem;
 use pinocchio::{
-    account_info::AccountInfo,
-    account_info::RefMut,
-    program_error::ProgramError,
-    ProgramResult,
+    account_info::AccountInfo, account_info::RefMut, program_error::ProgramError, ProgramResult,
 };
+// test-only
+use alloc::string::ToString;
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct PollAccount {
@@ -23,8 +20,8 @@ impl Default for PollAccount {
     fn default() -> Self {
         Self {
             poll_id: 0,
-            poll_name: "a".repeat(Self::MAX_NAME_LENGTH),
-            poll_description: String::from_utf8(vec![0u8; Self::MAX_DESCRIPTION_LENGTH]).unwrap(),
+            poll_name: "n".repeat(Self::MAX_NAME_LENGTH),
+            poll_description: "d".repeat(Self::MAX_DESCRIPTION_LENGTH),
             poll_voting_start: 0,
             poll_voting_end: 0,
             poll_option_index: 0,
@@ -35,8 +32,6 @@ impl Default for PollAccount {
 impl PollAccount {
     pub const MAX_NAME_LENGTH: usize = 50;
     pub const MAX_DESCRIPTION_LENGTH: usize = 280;
-    pub const SIZE: usize =
-        mem::size_of::<Self>() + Self::MAX_NAME_LENGTH + Self::MAX_DESCRIPTION_LENGTH;
 
     pub fn increment_option_index(&mut self) {
         self.poll_option_index += 1;
@@ -58,5 +53,24 @@ impl PollAccount {
     pub fn save(&self, dst: &mut [u8]) -> ProgramResult {
         self.serialize(&mut &mut dst[..])
             .map_err(|_| ProgramError::InvalidAccountData)
+    }
+
+    /// Used in tests for the moment
+    /// it keeps the string length amount constant
+    pub fn checked_name(name: &str) -> String {
+        Self::pad_string_null(name.to_string(), Self::MAX_NAME_LENGTH)
+    }
+
+    pub fn checked_desc(desc: &str) -> String {
+        Self::pad_string_null(desc.to_string(), Self::MAX_DESCRIPTION_LENGTH)
+    }
+
+    fn pad_string_null(mut s: String, len: usize) -> String {
+        if s.len() > len {
+            s.truncate(len);
+        } else {
+            s.push_str(&"\0".repeat(len - s.len()));
+        }
+        s
     }
 }

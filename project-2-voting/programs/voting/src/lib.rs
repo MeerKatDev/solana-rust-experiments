@@ -2,14 +2,11 @@
 #![no_std]
 
 extern crate alloc;
+use borsh::BorshDeserialize;
 use pinocchio::{
-    account_info::AccountInfo,
-    entrypoint,
-    program_error::ProgramError,
-    pubkey::Pubkey,
+    account_info::AccountInfo, entrypoint, program_error::ProgramError, pubkey::Pubkey,
     ProgramResult,
 };
-use borsh::BorshDeserialize;
 
 pub mod accounts;
 pub mod error;
@@ -41,9 +38,7 @@ pub fn process_instruction(
         VotingInstruction::InitializeCandidate { poll_id, candidate } => {
             ixs::initialize_candidate(accounts, poll_id, candidate)?
         }
-        VotingInstruction::Vote { poll_id, candidate } => {
-            ixs::vote(accounts, poll_id, candidate)?
-        }
+        VotingInstruction::Vote { poll_id, candidate } => ixs::vote(accounts, poll_id, candidate)?,
     }
 
     Ok(())

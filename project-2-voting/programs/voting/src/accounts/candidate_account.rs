@@ -1,5 +1,5 @@
-use borsh::{BorshDeserialize, BorshSerialize};
 use alloc::string::String;
+use borsh::{BorshDeserialize, BorshSerialize};
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct CandidateAccount {

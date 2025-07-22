@@ -4,8 +4,7 @@ use solana_account::Account;
 use solana_instruction::{AccountMeta, Instruction};
 use solana_pubkey::Pubkey;
 use std::convert::TryInto;
-use voting::accounts::PollAccount;
-use voting::ixs::VotingInstruction;
+use voting::{accounts::PollAccount, ixs::VotingInstruction};
 
 #[test]
 fn test_initialize_poll() {
@@ -20,11 +19,8 @@ fn test_initialize_poll() {
 
     let initialize_poll_ix = VotingInstruction::InitializePoll {
         poll_id: 42,
-        name: pad_string_null("Who's a good boy".to_string(), PollAccount::MAX_NAME_LENGTH),
-        description: pad_string_null(
-            "Poll to determine who's a good boy".to_string(),
-            PollAccount::MAX_DESCRIPTION_LENGTH,
-        ),
+        name: PollAccount::checked_name("Who's a good boy"),
+        description: PollAccount::checked_desc("Poll to determine who's a good boy"),
         start_time: current_time,
         end_time: current_time + 10_000u64, // 10 seconds?
     };
@@ -64,13 +60,4 @@ fn test_initialize_poll() {
 
     let new_poll_account = PollAccount::try_from_slice(&updated_poll_account.data).unwrap();
     assert_eq!(new_poll_account.poll_option_index, 0);
-}
-
-fn pad_string_null(mut s: String, len: usize) -> String {
-    if s.len() > len {
-        s.truncate(len);
-    } else {
-        s.push_str(&"\0".repeat(len - s.len()));
-    }
-    s
 }
