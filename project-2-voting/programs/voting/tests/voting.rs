@@ -61,6 +61,7 @@ fn test_initialize_poll() {
     let result = mollusk.process_and_validate_instruction(&instruction, &accounts, &checks);
     let (poll_account_pubkey2, updated_poll_account) = &result.resulting_accounts[0];
     assert_eq!(poll_account_pubkey, *poll_account_pubkey2);
+
     let new_poll_account = PollAccount::try_from_slice(&updated_poll_account.data).unwrap();
     assert_eq!(new_poll_account.poll_option_index, 0);
 }

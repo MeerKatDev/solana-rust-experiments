@@ -1,14 +1,14 @@
 #![allow(unexpected_cfgs)]
-// #![no_std]
+#![no_std]
 
 extern crate alloc;
 use alloc::string::String;
-use alloc::vec;
 
 use borsh::{BorshDeserialize, BorshSerialize};
+use error::ErrorCode;
 use pinocchio::{
     account_info::AccountInfo,
-    entrypoint, msg,
+    entrypoint,
     program_error::ProgramError,
     pubkey::Pubkey,
     sysvars::{clock::Clock, Sysvar},
@@ -16,22 +16,13 @@ use pinocchio::{
 };
 use pinocchio_log::logger::Logger;
 
+mod error;
+
+pub mod ixs;
+use ixs::initialize_poll;
+
 pub mod accounts;
 use accounts::PollAccount;
-
-#[repr(u32)]
-pub enum ErrorCode {
-    VotingNotStarted,
-    VotingEnded,
-    NameTooLong,
-    DescriptionTooLong,
-}
-
-impl From<ErrorCode> for u32 {
-    fn from(err: ErrorCode) -> u32 {
-        err as u32
-    }
-}
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct CandidateAccount {
@@ -76,7 +67,7 @@ pub fn process_instruction(
             start_time,
             end_time,
         } => {
-            process_initialize_poll(accounts, poll_id, name, description, start_time, end_time)?;
+            initialize_poll(accounts, poll_id, name, description, start_time, end_time)?;
         }
         VotingInstruction::InitializeCandidate { poll_id, candidate } => {
             process_initialize_candidate(accounts, poll_id, candidate)?
@@ -189,68 +180,6 @@ fn process_vote(accounts: &[AccountInfo], _poll_id: u64, _candidate_name: String
     candidate_account
         .serialize(&mut &mut candidate_data[..])
         .map_err(|_| ProgramError::InvalidAccountData)?;
-
-    Ok(())
-}
-
-fn process_initialize_poll(
-    accounts: &[AccountInfo],
-    poll_id: u64,
-    poll_name: String,
-    poll_description: String,
-    poll_voting_start: u64,
-    poll_voting_end: u64,
-) -> ProgramResult {
-    let mut logger = Logger::<100>::default();
-
-    let poll_account = &accounts[0]; // Writable, owned by program
-                                     // let initializer = &accounts[1]; // Signer, who initializes the poll, not necessarily the candidate
-
-    // if !initializer.is_signer() {
-    //     return Err(ProgramError::MissingRequiredSignature);
-    // }
-
-    // if !poll_account.is_owned_by(initializer.key()) {
-    //     logger.append("Poll account is not owned by initializer");
-    //     logger.log();
-
-    //     return Err(ProgramError::IllegalOwner);
-    // }
-
-    if poll_description.len() > 280 {
-        return Err(ProgramError::Custom(ErrorCode::DescriptionTooLong.into()));
-    }
-
-    // This is good for creation from zero
-    // let new_poll_account = PollAccount {
-    //     poll_id,
-    //     poll_name,
-    //     poll_description,
-    //     poll_voting_start,
-    //     poll_voting_end,
-    //     poll_option_index: 0,
-    // };
-
-    let mut data = poll_account.try_borrow_mut_data().unwrap();
-
-    let mut poll_account =
-        PollAccount::try_from_slice(&data).map_err(|_e| ProgramError::InvalidAccountData)?;
-
-    // NOTE: this assumes that the account is already present,
-    // not that it has to be created.
-    poll_account.poll_id = poll_id;
-    poll_account.poll_name = poll_name;
-    poll_account.poll_description = poll_description;
-    poll_account.poll_voting_start = poll_voting_start;
-    poll_account.poll_voting_end = poll_voting_end;
-    poll_account.poll_option_index = 0;
-
-    poll_account
-        .serialize(&mut &mut data[..])
-        .map_err(|_e| ProgramError::InvalidAccountData)?;
-
-    logger.append("Poll initialized successfully");
-    logger.log();
 
     Ok(())
 }
