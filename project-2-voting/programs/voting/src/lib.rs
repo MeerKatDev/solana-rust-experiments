@@ -2,12 +2,12 @@
 #![allow(unexpected_cfgs)]
 
 use pinocchio::{
-    sysvars::{Sysvar, clock::Clock},
-    program_error::ProgramError,
-    ProgramResult,
     account_info::AccountInfo,
     entrypoint,
+    program_error::ProgramError,
     pubkey::Pubkey,
+    sysvars::{clock::Clock, Sysvar},
+    ProgramResult,
 };
 use pinocchio_log::logger::Logger;
 
@@ -23,6 +23,7 @@ pub enum ErrorCode {
     VotingNotStarted,
     VotingEnded,
     NameTooLong,
+    DescriptionTooLong,
 }
 
 impl From<ErrorCode> for u32 {
@@ -33,16 +34,13 @@ impl From<ErrorCode> for u32 {
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct CandidateAccount {
-    // #[max_len(32)]
     pub candidate_name: String,
     pub candidate_votes: u64,
 }
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct PollAccount {
-    // #[max_len(32)]
     pub poll_name: String,
-    // #[max_len(280)]
     pub poll_description: String,
     pub poll_voting_start: u64,
     pub poll_voting_end: u64,
@@ -60,12 +58,12 @@ pub enum VotingInstruction {
     },
     InitializeCandidate {
         poll_id: u64,
-        candidate: String
+        candidate: String,
     },
     Vote {
         poll_id: u64,
-        candidate: String
-    }
+        candidate: String,
+    },
 }
 
 entrypoint!(process_instruction);
@@ -99,15 +97,14 @@ pub fn process_instruction(
     Ok(())
 }
 
-
 fn process_initialize_candidate(
     accounts: &[AccountInfo],
-    _poll_id: u64, 
-    candidate_name: String
- ) -> ProgramResult {
+    _poll_id: u64,
+    candidate_name: String,
+) -> ProgramResult {
     let mut logger = Logger::<100>::default();
 
-    let poll_account = &accounts[0]; // Writable, owned by program, 
+    let poll_account = &accounts[0]; // Writable, owned by program,
     let candidate_account = &accounts[1]; // Signer (payer)
 
     // check if they are writable
@@ -129,44 +126,52 @@ fn process_initialize_candidate(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    let poll_data = poll_account.try_borrow_mut_data().unwrap();
-    let mut poll_account = PollAccount::try_from_slice(&poll_data)
-        .map_err(|_e| ProgramError::InvalidAccountData)?;
+    // editing candidate account
 
-    let candidate_data = candidate_account.try_borrow_mut_data().unwrap();
+    let mut candidate_data = candidate_account
+        .try_borrow_mut_data()
+        .map_err(|_| ProgramError::InvalidAccountData)?;
     let mut candidate_account = CandidateAccount::try_from_slice(&candidate_data)
         .map_err(|_e| ProgramError::InvalidAccountData)?;
 
-    if candidate_account.candidate_name.len() > 32 {
+    if candidate_name.len() > 32 {
         return Err(ProgramError::Custom(ErrorCode::NameTooLong.into()));
     }
 
     candidate_account.candidate_name = candidate_name;
+
+    candidate_account
+        .serialize(&mut &mut candidate_data[..])
+        .map_err(|_| ProgramError::InvalidAccountData)?;
+
+    // editing poll account
+
+    let mut poll_data = poll_account
+        .try_borrow_mut_data()
+        .map_err(|_| ProgramError::InvalidAccountData)?;
+    let mut poll_account =
+        PollAccount::try_from_slice(&poll_data).map_err(|_e| ProgramError::InvalidAccountData)?;
+
     poll_account.poll_option_index += 1;
+
+    poll_account
+        .serialize(&mut &mut poll_data[..])
+        .map_err(|_| ProgramError::InvalidAccountData)?;
 
     Ok(())
 }
 
-fn process_vote(
-    accounts: &[AccountInfo], 
-    _poll_id: u64, 
-    _candidate_name: String
-) -> ProgramResult {
-
-    let poll_account = &accounts[0]; // Writable, owned by program, 
+fn process_vote(accounts: &[AccountInfo], _poll_id: u64, _candidate_name: String) -> ProgramResult {
+    let poll_account = &accounts[0]; // Writable, owned by program,
     let candidate_account = &accounts[1]; // Signer (payer)
 
-    // this has to be read only
-    let poll_data = poll_account.try_borrow_data().unwrap();
-    let poll_account = PollAccount::try_from_slice(&poll_data)
-        .map_err(|_e| ProgramError::InvalidAccountData)?;
+    // this has to be read-only
+    let poll_data = poll_account.try_borrow_data()
+        .map_err(|_| ProgramError::InvalidAccountData)?;
+    let poll_account =
+        PollAccount::try_from_slice(&poll_data).map_err(|_e| ProgramError::InvalidAccountData)?;
 
-    // this has to be mutable / modifiable
-    let candidate_data = candidate_account.try_borrow_mut_data().unwrap();
-    let mut candidate_account = CandidateAccount::try_from_slice(&candidate_data)
-        .map_err(|_e| ProgramError::InvalidAccountData)?;
-
-    // checking time boundaries
+    // checking time boundaries for voting
 
     let current_time = Clock::get()?.unix_timestamp;
 
@@ -178,7 +183,20 @@ fn process_vote(
         return Err(ProgramError::Custom(ErrorCode::VotingNotStarted.into()));
     }
 
+    // editing candidate account
+
+    // this has to be mutable / modifiable
+    let mut candidate_data = candidate_account
+        .try_borrow_mut_data()
+        .map_err(|_| ProgramError::InvalidAccountData)?;
+    let mut candidate_account = CandidateAccount::try_from_slice(&candidate_data)
+        .map_err(|_e| ProgramError::InvalidAccountData)?;
+
     candidate_account.candidate_votes += 1;
+
+    candidate_account
+        .serialize(&mut &mut candidate_data[..])
+        .map_err(|_| ProgramError::InvalidAccountData)?;
 
     Ok(())
 }
@@ -194,7 +212,7 @@ fn process_initialize_poll(
     let mut logger = Logger::<100>::default();
 
     let poll_account = &accounts[0]; // Writable, owned by program
-    let initializer = &accounts[1];       // Signer, who initializes the poll, not necessarily the candidate
+    let initializer = &accounts[1]; // Signer, who initializes the poll, not necessarily the candidate
 
     if !initializer.is_signer() {
         return Err(ProgramError::MissingRequiredSignature);
@@ -207,6 +225,10 @@ fn process_initialize_poll(
         return Err(ProgramError::IllegalOwner);
     }
 
+    if poll_description.len() > 280 {
+        return Err(ProgramError::Custom(ErrorCode::DescriptionTooLong.into()));
+    }
+
     let poll_data = PollAccount {
         poll_name,
         poll_description,
@@ -215,9 +237,13 @@ fn process_initialize_poll(
         poll_option_index: 0,
     };
 
-    let mut data = poll_account.try_borrow_mut_data().unwrap();
+    let mut data = poll_account
+        .try_borrow_mut_data()
+        .map_err(|_| ProgramError::InvalidAccountData)?;
 
-    poll_data.serialize(&mut &mut data[..]).map_err(|_e| ProgramError::InvalidAccountData)?;
+    poll_data
+        .serialize(&mut &mut data[..])
+        .map_err(|_e| ProgramError::InvalidAccountData)?;
 
     logger.append("Poll initialized successfully");
     logger.log();
