@@ -40,6 +40,7 @@ pub struct CandidateAccount {
 
 #[derive(BorshSerialize, BorshDeserialize, Debug)]
 pub struct PollAccount {
+    pub poll_id: u64,
     pub poll_name: String,
     pub poll_description: String,
     pub poll_voting_start: u64,
@@ -117,7 +118,7 @@ fn process_initialize_candidate(
     if !candidate_account.is_writable() {
         logger.append("Account is not writable");
         logger.log();
-        return Err(ProgramError::InvalidAccountData);
+        return Err(ProgramError::IncorrectAuthority);
     }
 
     if !candidate_account.is_signer() {
@@ -128,27 +129,37 @@ fn process_initialize_candidate(
 
     // editing candidate account
 
-    let mut candidate_data = candidate_account
-        .try_borrow_mut_data()
-        .map_err(|_| ProgramError::InvalidAccountData)?;
-    let mut candidate_account = CandidateAccount::try_from_slice(&candidate_data)
-        .map_err(|_e| ProgramError::InvalidAccountData)?;
+    // let mut candidate_data = candidate_account
+    //     .try_borrow_mut_data()
+    //     .map_err(|_| ProgramError::InvalidAccountData)?;
+    // let mut candidate_account = CandidateAccount::try_from_slice(&candidate_data)
+    //     .map_err(|_e| ProgramError::InvalidAccountData)?;
 
     if candidate_name.len() > 32 {
         return Err(ProgramError::Custom(ErrorCode::NameTooLong.into()));
     }
 
-    candidate_account.candidate_name = candidate_name;
+    let candidate_data = CandidateAccount {
+        candidate_name,
+        candidate_votes: 0
+    };
 
-    candidate_account
-        .serialize(&mut &mut candidate_data[..])
+    // get memory "booked" by candidate account
+    let mut data = candidate_account
+        .try_borrow_mut_data()
         .map_err(|_| ProgramError::InvalidAccountData)?;
+
+    candidate_data
+        .serialize(&mut &mut data[..])
+        .map_err(|_e| ProgramError::InvalidAccountData)?;
 
     // editing poll account
 
     let mut poll_data = poll_account
         .try_borrow_mut_data()
         .map_err(|_| ProgramError::InvalidAccountData)?;
+
+    // we are editing, meaning that the struct already exists
     let mut poll_account =
         PollAccount::try_from_slice(&poll_data).map_err(|_e| ProgramError::InvalidAccountData)?;
 
@@ -203,7 +214,7 @@ fn process_vote(accounts: &[AccountInfo], _poll_id: u64, _candidate_name: String
 
 fn process_initialize_poll(
     accounts: &[AccountInfo],
-    _poll_id: u64,
+    poll_id: u64,
     poll_name: String,
     poll_description: String,
     poll_voting_start: u64,
@@ -230,6 +241,7 @@ fn process_initialize_poll(
     }
 
     let poll_data = PollAccount {
+        poll_id,
         poll_name,
         poll_description,
         poll_voting_start,
