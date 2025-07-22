@@ -5,7 +5,7 @@ use solana_instruction::{AccountMeta, Instruction};
 use solana_pubkey::Pubkey;
 use std::convert::TryInto;
 use voting::accounts::PollAccount;
-use voting::VotingInstruction;
+use voting::ixs::VotingInstruction;
 
 #[test]
 fn test_initialize_poll() {

@@ -4,7 +4,7 @@ use borsh::{BorshDeserialize, BorshSerialize};
 use core::mem;
 use pinocchio::{
     account_info::AccountInfo,
-    account_info::RefMut, // this or core?
+    account_info::RefMut,
     program_error::ProgramError,
     ProgramResult,
 };
