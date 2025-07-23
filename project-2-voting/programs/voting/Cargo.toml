@@ -15,7 +15,6 @@ borsh = { version = "=1.5.7", features = ["derive"] }
 
 [dev-dependencies]
 mollusk-svm = "0.4.1"
-solana-program-test = "2.3.3"
 solana-account = "2.2.1"
-solana-instruction = "2.2.1"
-solana-pubkey = "2.2.1"
+solana-instruction = "2.3.0"
+solana-pubkey = "2.4.0"
