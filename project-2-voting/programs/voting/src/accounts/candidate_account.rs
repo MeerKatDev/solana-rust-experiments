@@ -18,7 +18,7 @@ impl Default for CandidateAccount {
 }
 
 impl CandidateAccount {
-    pub const MAX_NAME_LENGTH: usize = 30;
+    pub const MAX_NAME_LENGTH: usize = 16;
 
     pub fn new(candidate_name: String) -> Self {
         Self {

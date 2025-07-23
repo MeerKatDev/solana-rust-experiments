@@ -62,7 +62,7 @@ fn test_initialize_candidate() {
 
     let initialize_cand_ix = VotingInstruction::InitializeCandidate {
         poll_id: 42,
-        candidate: CandidateAccount::checked_name("Who's a good boy"),
+        candidate: CandidateAccount::checked_name("A good boy"),
     };
 
     let mut instr_data = vec![];
@@ -95,6 +95,11 @@ fn test_initialize_candidate() {
     let result = mollusk.process_and_validate_instruction(&instruction, &accounts, &checks);
     let (_cand_account_pubkey, updated_cand_account) = &result.resulting_accounts[0];
     let (_poll_account_pubkey, updated_poll_account) = &result.resulting_accounts[1];
+
+    let new_cand_account = CandidateAccount::try_from_slice(&updated_cand_account.data).unwrap();
+    let new_poll_account = PollAccount::try_from_slice(&updated_poll_account.data).unwrap();
+    assert_eq!(new_cand_account.candidate_name, "A good boy\0\0\0\0\0\0");
+    assert_eq!(new_poll_account.poll_option_index, 1);
 }
 
 // test utils
