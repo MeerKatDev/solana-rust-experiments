@@ -1,8 +1,7 @@
 use alloc::string::String;
 use borsh::{BorshDeserialize, BorshSerialize};
 use pinocchio::{
-    account_info::AccountInfo, account_info::RefMut, program_error::ProgramError,
-    ProgramResult,
+    account_info::AccountInfo, account_info::RefMut, program_error::ProgramError, ProgramResult,
 };
 // test-only
 use alloc::string::ToString;
