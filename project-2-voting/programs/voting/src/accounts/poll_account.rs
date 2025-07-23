@@ -43,8 +43,7 @@ impl PollAccount {
             .try_borrow_mut_data()
             .map_err(|_| ProgramError::InvalidAccountData)?;
 
-        let poll =
-            PollAccount::try_from_slice(&data).map_err(|_| ProgramError::InvalidAccountData)?;
+        let poll = Self::try_from_slice(&data).map_err(|_| ProgramError::InvalidAccountData)?;
 
         Ok((poll, data))
     }

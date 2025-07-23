@@ -9,6 +9,11 @@ use voting::{
     ixs::VotingInstruction,
 };
 
+// TODOs
+// Should there be an account that controls all polls?
+// Poll Account contains the poll, so it may be created by anyone
+// Candidate Account is created by the candidate (or by anyone?)
+
 #[test]
 fn test_initialize_poll() {
     let program_id = Pubkey::new_unique();
@@ -79,11 +84,11 @@ fn test_initialize_candidate() {
 
     // TODO: these two accounts shouldn't be present when doing this.
     // Create account should be called inside the instruction itself.
-    let account_object = CandidateAccount::default();
-    let cand_account = make_fake_account(&program_id, account_object);
+    let cand_account_object = CandidateAccount::default();
+    let cand_account = make_fake_account(&program_id, &cand_account_object);
 
-    let account_object = PollAccount::default();
-    let poll_account = make_fake_account(&program_id, account_object);
+    let poll_account_object = PollAccount::default();
+    let poll_account = make_fake_account(&program_id, &poll_account_object);
 
     let accounts = vec![
         (cand_account_pubkey, cand_account),
@@ -91,6 +96,8 @@ fn test_initialize_candidate() {
     ];
 
     let checks = vec![Check::success()];
+    assert!(cand_account_object.candidate_name != "A good boy\0\0\0\0\0\0");
+    assert_eq!(poll_account_object.poll_option_index, 0);
 
     let result = mollusk.process_and_validate_instruction(&instruction, &accounts, &checks);
     let (_cand_account_pubkey, updated_cand_account) = &result.resulting_accounts[0];
