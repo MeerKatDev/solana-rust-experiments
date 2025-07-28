@@ -40,6 +40,11 @@ pub fn process_instruction(
     ]);
 
     match VaultInstructions::try_from(discriminator)? {
+        VaultInstructions::CreateAccount => {
+            let owner_account = &accounts[2];
+            let space_needed = 256;
+            create::process(accounts, lamports, space_needed, owner_account)
+        }
         VaultInstructions::Deposit => deposit::process(accounts, lamports),
         VaultInstructions::Withdraw => withdraw::process(accounts, lamports),
     }
