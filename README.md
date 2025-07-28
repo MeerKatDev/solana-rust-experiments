@@ -39,6 +39,10 @@ cargo test
 ## pinocchio-favorites-spt
 Program with pinocchio and pinocchio-pubkey running solana program test, minimal test setup. Run with `cargo test-sbf`.
 
+## native-vault
+
+This example was taken from [Pinocchio guide](https://github.com/vict0rcarvalh0/pinocchio-guide) and corrected. There are no tests, but it contains mainly system program invocations, so Mollusk cannot be used here (or shouldn't!), LiteSvm will instead.
+
 
 ## For checking the assembly generated on MacOS M1/M2
 
