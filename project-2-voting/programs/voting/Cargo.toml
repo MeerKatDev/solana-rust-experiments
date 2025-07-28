@@ -9,7 +9,7 @@ crate-type = ["cdylib", "lib"]
 name = "voting"
 
 [dependencies]
-pinocchio = "0.8.4"
+pinocchio = "0.9.0"
 pinocchio-log = "0.4.0"
 borsh = { version = "=1.5.7", features = ["derive"] }
 

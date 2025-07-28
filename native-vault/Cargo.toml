@@ -1,0 +1,15 @@
+cargo-features = ["edition2024"]
+
+[package]
+name = "native-vault"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "native_vault"
+
+[dependencies]
+pinocchio = "0.9.0"
+pinocchio-pubkey = "0.3.0"
+pinocchio-system = "0.3.0"
