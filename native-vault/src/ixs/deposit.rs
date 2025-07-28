@@ -25,8 +25,4 @@ pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
     transfer_ix.invoke()?;
 
     Ok(())
-    // invoke(
-    //     &transfer(signer.key, vault.key, lamports),
-    //     accounts, // Pass account references required for the transfer.
-    // )
 }

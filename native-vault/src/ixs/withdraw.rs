@@ -31,12 +31,5 @@ pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
     let signers = [signer];
     transfer_ix.invoke_signed(&signers)?;
 
-    // transfer_ix.invoke_signed(accounts);
-
     Ok(())
-    // invoke_signed(
-    //     &transfer(vault.key, signer.key, lamports),
-    //     accounts, // Pass account references required for the transfer.
-    //     &[&[signer.key.as_ref(), &[bump]]], // Include PDA seeds for signing.
-    // )
 }
