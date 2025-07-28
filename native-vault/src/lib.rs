@@ -41,9 +41,9 @@ pub fn process_instruction(
 
     match VaultInstructions::try_from(discriminator)? {
         VaultInstructions::CreateAccount => {
-            let owner_account = &accounts[2];
-            let space_needed = 256;
-            create::process(accounts, lamports, space_needed, owner_account)
+            let bytes: [u8; 8] = data[8..16].try_into().unwrap();
+            let space_needed = u64::from_be_bytes(bytes);
+            create::process(accounts, lamports, space_needed)
         }
         VaultInstructions::Deposit => deposit::process(accounts, lamports),
         VaultInstructions::Withdraw => withdraw::process(accounts, lamports),
