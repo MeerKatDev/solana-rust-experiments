@@ -45,6 +45,11 @@ pub fn process_instruction(
             let space_needed = u64::from_be_bytes(bytes);
             create::process(accounts, lamports, space_needed)
         }
+        VaultInstructions::CreatePdaAccount => {
+            let bytes: [u8; 8] = data[8..16].try_into().unwrap();
+            let space_needed = u64::from_be_bytes(bytes);
+            create_pda::process(accounts, lamports, space_needed)
+        }
         VaultInstructions::Deposit => deposit::process(accounts, lamports),
         VaultInstructions::Withdraw => withdraw::process(accounts, lamports),
     }

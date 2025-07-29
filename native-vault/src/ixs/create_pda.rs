@@ -1,6 +1,7 @@
 use pinocchio::sysvars::Sysvar;
 use pinocchio::{
-    ProgramResult, account_info::AccountInfo, program_error::ProgramError, sysvars::rent::Rent,
+    ProgramResult, account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
+    pubkey::find_program_address, seeds, sysvars::rent::Rent,
 };
 use pinocchio_system::instructions::CreateAccount;
 
@@ -21,6 +22,7 @@ pub fn process(
     _lamports: u64, // Number of lamports to transfer to the new account.
     _space: u64,    // Number of bytes to allocate for the new account.
 ) -> ProgramResult {
+    let seed: &str = "state_seed";
     // Accounts passed to the instruction
     let owner_account = &accounts[0]; // The account that will fund the new account.
     let new_account = &accounts[1]; // The new account that will be created.
@@ -30,6 +32,19 @@ pub fn process(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    let owner = owner_account.key();
+
+    let seeds = &[seed.as_bytes(), owner.as_ref()];
+    // derive the canonical bump during account init
+    let (pda, bump) = find_program_address(seeds, &crate::ID);
+    if pda.ne(new_account.key()) {
+        return Err(ProgramError::InvalidAccountOwner);
+    }
+
+    let bump_binding = [bump];
+    let signer_seeds = seeds!(seed.as_bytes(), owner.as_ref(), &bump_binding);
+    let signers = [Signer::from(&signer_seeds[..])];
+
     CreateAccount {
         from: owner_account,
         to: new_account,
@@ -37,7 +52,7 @@ pub fn process(
         space: 512u64,
         owner: &crate::ID,
     }
-    .invoke()?;
+    .invoke_signed(&signers)?;
 
     Ok(())
 }
