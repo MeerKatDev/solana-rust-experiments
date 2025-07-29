@@ -6,14 +6,14 @@ use pinocchio::{
 // use pinocchio::pubkey::Pubkey;
 use ixs::VaultInstructions;
 use pinocchio::pubkey::Pubkey;
-use pinocchio_pubkey::pubkey;
+use pinocchio_pubkey::declare_id;
 
 mod ixs;
 use ixs::*;
 
 // Always define program IDs as constants using `pubkey!`.
 // This avoids runtime costs of deriving keys dynamically.
-const ID: Pubkey = pubkey!("8Qe6bE7P6pHrxWYXnkaidUGfXQkN7bcZ7PkYzNQXnZJD");
+declare_id!("BTY4sjSUzhi2iTtM7Va3DgM5NRuF9nox17up5Fcih8SG");
 
 // Macro that declares `process_instruction` as the program's entry point.
 entrypoint!(process_instruction);

@@ -2,7 +2,7 @@ use pinocchio::{
     ProgramResult, account_info::AccountInfo, instruction::Signer, program_error::ProgramError,
     pubkey::try_find_program_address, seeds,
 };
-
+use pinocchio::{msg, program};
 use pinocchio_system::instructions::CreateAccount;
 
 /// Processes the `CreateAccount` instruction.
@@ -39,17 +39,25 @@ pub fn process(
         to: new_account,
         lamports,
         space,
-        owner,
+        owner: owner,
     };
 
-    let (_pda, bump) = try_find_program_address(&[owner.as_ref()], &crate::ID)
-        .ok_or(ProgramError::InvalidSeeds)?;
-    let pda_ref = &[bump]; // prevent temporary value being freed
-    let seeds = seeds!(b"seed", owner.as_ref(), pda_ref);
-    let signer = Signer::from(&seeds);
 
+    // let (pda, bump) = try_find_program_address(&[owner.as_ref()], &crate::ID)
+    //     .ok_or(ProgramError::InvalidSeeds)?;
+    // let pda_ref = &[bump]; // prevent temporary value being freed
+    msg!(&format!("owner_account: {:?}", owner_account.key()).to_string());
+    msg!(&format!("new_account: {:?}", new_account.key()).to_string());
+    // let seeds = seeds!(b"seed", owner.as_ref(), pda_ref);
+    // let signer = Signer::from(&seeds);
+    // msg!(&format!("signer: {:?}", &signer).to_string());
+
+    msg!("Invoking instruction");
     // Invoking the instruction
-    create_account_ix.invoke_signed(&[signer])?;
+    // create_account_ix.invoke_signed(&[signer])?;
+    create_account_ix.invoke()?;
+    // program::invoke_signed,
+    msg!("Invoking signed");
 
     Ok(())
 }
