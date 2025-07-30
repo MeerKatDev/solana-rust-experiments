@@ -28,17 +28,18 @@ pub fn process(
     space: u64,    // Number of bytes to allocate for the new account.
 ) -> ProgramResult {
     // Accounts passed to the instruction
-    let owner_account = &accounts[0]; // The account that will fund the new account.
-    let new_account = &accounts[1]; // The new account that will be created.
+    let [owner_account, new_account, _system_program] = accounts else {
+        return Err(ProgramError::InvalidAccountData);
+    };
 
     // Ensure the funding account and new account are signers
     if !owner_account.is_signer() || !new_account.is_signer() {
         return Err(ProgramError::MissingRequiredSignature);
     }
 
-    let owner = owner_account.key();
+    let owner_key = owner_account.key();
 
-    let seeds = &[SEED, owner.as_ref()];
+    let seeds = &[SEED, owner_key.as_ref()];
 
     let (pda, bump) = find_program_address(seeds, &crate::ID);
 
@@ -47,7 +48,7 @@ pub fn process(
     }
 
     let bump_binding = [bump];
-    let signer_seeds = seeds!(SEED, owner.as_ref(), &bump_binding);
+    let signer_seeds = seeds!(SEED, owner_key.as_ref(), &bump_binding);
     let signers = [Signer::from(&signer_seeds[..])];
     let lamports = Rent::get()?
         .minimum_balance(space as usize)

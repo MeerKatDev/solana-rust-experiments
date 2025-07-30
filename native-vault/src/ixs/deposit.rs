@@ -1,8 +1,14 @@
-use pinocchio::pubkey::try_find_program_address;
+use pinocchio::pubkey::find_program_address;
 use pinocchio::{ProgramResult, account_info::AccountInfo, program_error::ProgramError};
 use pinocchio_system::instructions::Transfer;
 
+pub const SEED: &[u8] = b"deposit_seed";
+
 /// Processes the deposit instruction.
+/// ### Accounts:
+/// 0. `[WRITE, SIGNER]` The signer owning the funds in the vault account.
+/// 1. `[WRITE, SIGNER]` The vault PDA account.
+/// 2. `[NON-WRITE, NON-SIGNER]` System Account
 pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
     // Validate the account array structure.
     let [signer, vault, _system_program] = accounts else {
@@ -10,10 +16,14 @@ pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
     };
 
     // Derive the Program Derived Address (PDA) for the vault and validate it.
-    let (pda, _bump) = try_find_program_address(&[signer.key().as_ref()], &crate::ID)
-        .ok_or(ProgramError::InvalidSeeds)?;
+    let seeds = &[SEED, signer.key().as_ref()];
 
-    assert_eq!(&pda, vault.key()); // Ensure the PDA matches the vault's public key.
+    let (pda, _bump) = find_program_address(seeds, &crate::ID);
+
+    // Ensure the PDA matches the vault's public key.
+    if pda.ne(vault.key()) {
+        return Err(ProgramError::InvalidAccountOwner);
+    }
 
     // Perform the transfer of lamports from the signer to the vault account.
 
@@ -22,6 +32,8 @@ pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
         to: vault,
         lamports,
     };
+
+    // User signs the transfer; no PDA signing needed.
     transfer_ix.invoke()?;
 
     Ok(())

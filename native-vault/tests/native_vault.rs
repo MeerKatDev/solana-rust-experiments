@@ -140,3 +140,117 @@ fn create_pda_test() {
         rent_exempt_min + additional_lamports
     ); // rent exempt + 10 000
 }
+
+#[test]
+fn deposit_test() {
+    let program_id: Pubkey = native_vault::ID.into();
+    let signer_key = Pubkey::new_unique();
+    let (system_program, system_account) = mollusk_svm::program::keyed_account_for_system_program();
+
+    // Derive the vault PDA from the signer's key
+    let (vault_key, _bump) =
+        Pubkey::find_program_address(&[ixs::deposit::SEED, signer_key.as_ref()], &program_id);
+
+    let initial_signer_balance = 1_000_000_000u64;
+    let initial_vault_balance = 0u64;
+    let lamports_to_deposit = 100_000u64;
+
+    let signer_account = Account::new(initial_signer_balance, 0, &system_program);
+    let vault_account = Account::new(initial_vault_balance, 0, &program_id); // Owned by your program
+
+    let instruction_off = VaultInstruction {
+        discriminator: VaultInstructions::Deposit.into(),
+        lamports: lamports_to_deposit,
+        space: 0, // Not used for Deposit
+    };
+
+    let mut instr_in_bytes: Vec<u8> = Vec::new();
+    instruction_off.serialize(&mut instr_in_bytes).unwrap();
+
+    let instruction_on = Instruction::new_with_bytes(
+        program_id,
+        &instr_in_bytes,
+        vec![
+            AccountMeta::new(signer_key, true), // signer
+            AccountMeta::new(vault_key, false), // vault PDA (must match derived PDA)
+            AccountMeta::new_readonly(system_program, false),
+        ],
+    );
+
+    let mollusk = Mollusk::new(&program_id, "target/deploy/native_vault");
+
+    let checks = vec![
+        Check::success(),
+        Check::account(&signer_key)
+            .lamports(initial_signer_balance - lamports_to_deposit)
+            .build(),
+        Check::account(&vault_key)
+            .lamports(initial_vault_balance + lamports_to_deposit)
+            .build(),
+    ];
+
+    let accounts = vec![
+        (signer_key, signer_account),
+        (vault_key, vault_account),
+        (system_program, system_account),
+    ];
+
+    let _ = mollusk.process_and_validate_instruction(&instruction_on, &accounts, &checks);
+}
+
+#[test]
+fn withdraw_test() {
+    let program_id: Pubkey = native_vault::ID.into();
+    let signer_key = Pubkey::new_unique();
+    let (system_program, system_account) = mollusk_svm::program::keyed_account_for_system_program();
+
+    // Derive the PDA vault address from the signer key
+    let (vault_key, _bump) =
+        Pubkey::find_program_address(&[ixs::withdraw::SEED, signer_key.as_ref()], &program_id);
+
+    let lamports_in_vault = 200_000u64;
+    let lamports_to_withdraw = 100_000u64;
+    let initial_signer_balance = 1_000_000u64;
+
+    let vault_account = Account::new(lamports_in_vault, 0, &program_id);
+    let signer_account = Account::new(initial_signer_balance, 0, &system_program);
+
+    let instruction_off = VaultInstruction {
+        discriminator: VaultInstructions::Withdraw.into(),
+        lamports: lamports_to_withdraw,
+        space: 0, // Not used in Withdraw
+    };
+
+    let mut instr_in_bytes: Vec<u8> = Vec::new();
+    instruction_off.serialize(&mut instr_in_bytes).unwrap();
+
+    let instruction_on = Instruction::new_with_bytes(
+        program_id,
+        &instr_in_bytes,
+        vec![
+            AccountMeta::new(vault_key, false),
+            AccountMeta::new(signer_key, true),
+            AccountMeta::new_readonly(system_program, false),
+        ],
+    );
+
+    let mollusk = Mollusk::new(&program_id, "target/deploy/native_vault");
+
+    let checks = vec![
+        Check::success(),
+        Check::account(&vault_key)
+            .lamports(lamports_in_vault - lamports_to_withdraw)
+            .build(),
+        Check::account(&signer_key)
+            .lamports(initial_signer_balance + lamports_to_withdraw)
+            .build(),
+    ];
+
+    let accounts = vec![
+        (vault_key, vault_account),
+        (signer_key, signer_account),
+        (system_program, system_account),
+    ];
+
+    let _ = mollusk.process_and_validate_instruction(&instruction_on, &accounts, &checks);
+}
