@@ -14,7 +14,7 @@ pub const SEED: &[u8] = b"withdraw_seed";
 /// 2. `[NON-WRITE, NON-SIGNER]` System Account
 pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
     // Validate the account array structure.
-    let [vault, signer, _system_program] = accounts else {
+    let [signer, vault, _system_program] = accounts else {
         return Err(ProgramError::InvalidAccountData);
     };
 
@@ -23,12 +23,14 @@ pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
         return Err(ProgramError::Custom(28));
     }
 
+    // the account is owned by system program
+    // as long as it's not created onchain
+    // if !vault.is_owned_by(&crate::ID) {
+    //     return Err(ProgramError::InvalidAccountOwner);
+    // }
+
     if !signer.is_signer() {
         return Err(ProgramError::MissingRequiredSignature);
-    }
-
-    if !vault.is_owned_by(&crate::ID) {
-        return Err(ProgramError::InvalidAccountOwner);
     }
 
     // Derive the Program Derived Address (PDA) for the vault and validate it.
@@ -47,8 +49,8 @@ pub fn process(accounts: &[AccountInfo], lamports: u64) -> ProgramResult {
         lamports,
     };
 
-    let pda_ref = &[bump]; // prevent temporary value being freed
-    let seeds = seeds!(SEED, signer.key().as_ref(), pda_ref);
+    let pda_ref = [bump]; // prevent temporary value being freed
+    let seeds = seeds!(SEED, signer.key().as_ref(), &pda_ref);
     let pda_signer = Signer::from(&seeds);
     let signers = [pda_signer];
 

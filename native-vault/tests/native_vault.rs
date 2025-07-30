@@ -212,7 +212,7 @@ fn withdraw_test() {
     let lamports_to_withdraw = 100_000u64;
     let initial_signer_balance = 1_000_000u64;
 
-    let vault_account = Account::new(lamports_in_vault, 0, &program_id);
+    let vault_account = Account::new(lamports_in_vault, 0, &system_program);
     let signer_account = Account::new(initial_signer_balance, 0, &system_program);
 
     let instruction_off = VaultInstruction {
@@ -228,8 +228,8 @@ fn withdraw_test() {
         program_id,
         &instr_in_bytes,
         vec![
-            AccountMeta::new(vault_key, false),
             AccountMeta::new(signer_key, true),
+            AccountMeta::new(vault_key, false),
             AccountMeta::new_readonly(system_program, false),
         ],
     );
@@ -247,8 +247,8 @@ fn withdraw_test() {
     ];
 
     let accounts = vec![
-        (vault_key, vault_account),
         (signer_key, signer_account),
+        (vault_key, vault_account),
         (system_program, system_account),
     ];
 

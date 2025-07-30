@@ -49,7 +49,7 @@ pub fn process(
 
     let bump_binding = [bump];
     let signer_seeds = seeds!(SEED, owner_key.as_ref(), &bump_binding);
-    let signers = [Signer::from(&signer_seeds[..])];
+    let signers = [Signer::from(&signer_seeds)];
     let lamports = Rent::get()?
         .minimum_balance(space as usize)
         .checked_add(lamports)
