@@ -10,16 +10,15 @@ use pinocchio_system::instructions::CreateAccount;
 /// - `accounts`: The accounts required for the instruction.
 /// - `lamports`: The number of lamports to transfer to the new account.
 /// - `space`: The number of bytes to allocate for the new account.
-/// - `owner`: The program that will own the new account.
-/// - `signers`: The signers array needed to authorize the transaction.
 ///
 /// ### Accounts:
 /// 0. `[WRITE, SIGNER]` The funding and owner account.
 /// 1. `[WRITE, SIGNER]` The new account to be created.
+/// 1. `[NON-WRITE, NON-SIGNER]` System Account
 pub fn process(
     accounts: &[AccountInfo],
-    _lamports: u64, // Number of lamports to transfer to the new account.
-    _space: u64,    // Number of bytes to allocate for the new account.
+    lamports: u64, // Number of lamports to transfer to the new account.
+    space: u64,    // Number of bytes to allocate for the new account.
 ) -> ProgramResult {
     // Accounts passed to the instruction
     let owner_account = &accounts[0]; // The account that will fund the new account.
@@ -30,11 +29,16 @@ pub fn process(
         return Err(ProgramError::MissingRequiredSignature);
     }
 
+    let lamports = Rent::get()?
+        .minimum_balance(space as usize)
+        .checked_add(lamports)
+        .unwrap();
+
     CreateAccount {
         from: owner_account,
         to: new_account,
-        lamports: Rent::get()?.minimum_balance(512usize),
-        space: 512u64,
+        lamports,
+        space,
         owner: &crate::ID,
     }
     .invoke()?;

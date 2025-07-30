@@ -27,3 +27,14 @@ impl TryFrom<&u8> for VaultInstructions {
         }
     }
 }
+
+impl From<VaultInstructions> for u8 {
+    fn from(instruction: VaultInstructions) -> Self {
+        match instruction {
+            VaultInstructions::CreateAccount => 0,
+            VaultInstructions::CreatePdaAccount => 1,
+            VaultInstructions::Deposit => 2,
+            VaultInstructions::Withdraw => 3,
+        }
+    }
+}
