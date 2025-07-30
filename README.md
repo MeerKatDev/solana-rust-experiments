@@ -41,7 +41,7 @@ Program with pinocchio and pinocchio-pubkey running solana program test, minimal
 
 ## native-vault
 
-This example was taken from [Pinocchio guide](https://github.com/vict0rcarvalh0/pinocchio-guide) and corrected. There are no tests, but it contains mainly system program invocations, so Mollusk cannot be used here (or shouldn't!), LiteSvm will instead.
+This example was taken from [Pinocchio guide](https://github.com/vict0rcarvalh0/pinocchio-guide) and corrected. It contains create account for wallet and pdas, and two examples of transfer (one for wallets and one for pdas) with its respective tests.
 
 
 ## For checking the assembly generated on MacOS M1/M2
